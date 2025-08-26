@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 from datetime import datetime
+from PIL import Image
 
 # Configuración de la página
 st.set_page_config(
@@ -9,30 +10,36 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
+# Cargar logo local
+logo = Image.open("logo_ccsuy.png")
+
 # Header con logo y título
-logo_url = "https://www.ccsu.org.uy/sites/default/files/logo.png"  # Reemplaza con el URL correcto del logo
+col1, col2 = st.columns([1, 6])
+with col1:
+    st.image(logo, width=120)
+with col2:
+    st.markdown(
+        '<h1 style="color:#0B3C5D; margin-top:20px;">Ferias Empresariales en Uruguay</h1>',
+        unsafe_allow_html=True
+    )
+
+# Subtítulo
 st.markdown(
-    f"""
-    <div style="display:flex; align-items:center;">
-        <img src="{logo_url}" width="120" style="margin-right:20px;">
-        <h1 style="color:#0B3C5D;">Ferias Empresariales en Uruguay</h1>
-    </div>
+    """
+    <p style="color:#333; font-size:16px;">
+    Plataforma oficial de la Cámara de Comercio y Servicios del Uruguay (CCSUy) para mostrar ferias empresariales en Uruguay.  
+    Información para empresas extranjeras interesadas en networking, negocios y expansión internacional.
+    </p>
     """,
     unsafe_allow_html=True
 )
 
-st.markdown("""
-<p style="color:#333; font-size:16px;">
-Esta plataforma ofrece información sobre las principales ferias y exposiciones en Uruguay para **empresas extranjeras**, facilitando oportunidades de networking y negocios.
-</p>
-""", unsafe_allow_html=True)
-
 st.markdown("---")
 
-# Cargar CSV
+# Cargar dataset
 df = pd.read_csv("ferias_uruguay.csv")
 
-# Filtros en sidebar para mayor formalidad
+# Sidebar - filtros
 st.sidebar.header("Filtros de búsqueda")
 sector = st.sidebar.selectbox("Sector", ["Todos"] + sorted(df["Sector"].unique().tolist()))
 ciudad = st.sidebar.selectbox("Ciudad", ["Todos"] + sorted(df["Ciudad"].unique().tolist()))
@@ -50,22 +57,25 @@ if mes != "Todos":
         lambda x: datetime.strptime(x, "%Y-%m-%d").strftime("%B %Y") == mes
     )]
 
-# Mostrar resultados con formato de tarjeta serio
-for _, feria in df_filtrado.iterrows():
-    with st.container():
-        st.markdown(
-            f"""
-            <div style="border:1px solid #ccc; padding:15px; border-radius:8px; margin-bottom:15px; background-color:#f9f9f9;">
-                <h3 style="color:#0B3C5D;">{feria['Nombre']}</h3>
-                <p><strong>Fechas:</strong> {feria['Fecha Inicio']} → {feria['Fecha Fin']}</p>
-                <p><strong>Ubicación:</strong> {feria['Ciudad']} – {feria['Venue']}</p>
-                <p><strong>Sector:</strong> {feria['Sector']}</p>
-                <p><strong>Perfil de participantes:</strong> {feria['Perfil Participantes']}</p>
-                <p><strong>Idiomas disponibles:</strong> {feria['Idioma']}</p>
-                <a href="{feria['Sitio Oficial']}" target="_blank" style="text-decoration:none;">
-                    <div style="text-align:center; background-color:#0B3C5D; color:white; padding:8px 0; border-radius:5px; width:180px;">Más información</div>
-                </a>
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
+# Mostrar resultados
+if df_filtrado.empty:
+    st.warning("⚠️ No se encontraron ferias con esos criterios.")
+else:
+    for _, feria in df_filtrado.iterrows():
+        with st.container():
+            st.markdown(
+                f"""
+                <div style="border:1px solid #ccc; padding:20px; border-radius:8px; margin-bottom:15px; background-color:#f9f9f9;">
+                    <h3 style="color:#0B3C5D;">{feria['Nombre']}</h3>
+                    <p><strong>Fechas:</strong> {feria['Fecha Inicio']} → {feria['Fecha Fin']}</p>
+                    <p><strong>Ubicación:</strong> {feria['Ciudad']} – {feria['Venue']}</p>
+                    <p><strong>Sector:</strong> {feria['Sector']}</p>
+                    <p><strong>Perfil de participantes:</strong> {feria['Perfil Participantes']}</p>
+                    <p><strong>Idiomas disponibles:</strong> {feria['Idioma']}</p>
+                    <a href="{feria['Sitio Oficial']}" target="_blank" style="text-decoration:none;">
+                        <div style="text-align:center; background-color:#0B3C5D; color:white; padding:10px 0; border-radius:5px; width:200px; margin-top:10px;">Más información</div>
+                    </a>
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
